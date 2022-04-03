@@ -25,24 +25,23 @@ class SearchParser:
 
     def search(self, query, result, page):
 
-        if result == -1:
+        if result < 0:
 
             results = self.getData(query=query, page=page)
 
             self.parseResults(results=results)
 
-            if len(self.parsed_results) > 0:
-
-                reversed_results = list(reversed(self.parsed_results))
-
-                for res in reversed_results:
-
-                    print(res['name'])
-                    print(res['url'])
-                    print(res['divider'])
-
-            else:
+            if len(self.parsed_results) == 0:
                 print(bcolors.FAIL + "No results found.")
+                return
+
+            reversed_results = list(reversed(self.parsed_results))
+
+            for res in reversed_results:
+
+                print(res['name'])
+                print(res['url'])
+                print(res['divider'])
 
         else:
             self.searchAndOpen(query, result, page)
@@ -59,9 +58,18 @@ class SearchParser:
 
                 os.system(
                     f'python -m webbrowser https://{self.sites[0]}/questions/{self.parsed_results[result]["url"].split("/")[-2]}')
+                print(bcolors.OKGREEN +
+                      f"Opened {self.parsed_results[result]['url']}")
 
-            print(bcolors.OKGREEN +
-                  f"Opened {self.parsed_results[result]['url']}")
+                return
+
+            if len(self.parsed_results) == 0:
+                print(bcolors.FAIL + "No results found.")
+                return
+
+            if result >= len(self.parsed_results):
+                print(bcolors.FAIL + f"The number {result} is out of range")
+                return
 
     def getData(self, query, page):
 
@@ -100,6 +108,8 @@ class SearchParser:
 
             print(i, self.sites[i])
 
+        return
+
 
 def main():
 
@@ -110,8 +120,6 @@ def main():
 
     parser = ArgumentParser(
         prog=program_name, description=description, allow_abbrev=False)
-
-    parser.add_argument('-sites', '-s', nargs=2)
 
     parser.add_argument('-question', '-q', type=str)
 
@@ -124,12 +132,6 @@ def main():
     if args.question:
 
         search_parser.search(args.question, args.open, args.page)
-
-    if args.sites:
-        if 'show' in args.sites and 'lst' in args.sites:
-            search_parser.showSites()
-        elif 'add' in args.sites:
-            print(args.sites)
 
 
 if __name__ == "__main__":
